@@ -1,7 +1,7 @@
 from fake_useragent import UserAgent
 from tenacity import retry, stop_after_attempt, wait_random
 from tqdm import tqdm
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from PyQt5.QtNetwork import QNetworkCookie
 import requests
@@ -245,7 +245,7 @@ def parse_chapter_infos(chapter_infos: Dict[str, Any]) -> str:
 def export_weread_library(
     output_file: str = "data/books.json",
     start_index: int = 0,
-    detailed_books: str = "data/books.json",
+    detailed_books: Optional[str] = None,
     force_login: bool = False,
 ) -> None:
     """
@@ -271,6 +271,7 @@ def export_weread_library(
     detailed_book_map = {}
 
     try:
+        detailed_books = detailed_books or output_file
         # 已经下载过的带详细信息的书籍
         detailed_books = pd.read_json(detailed_books)
         for _, book in detailed_books.iterrows():
