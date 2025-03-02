@@ -1,0 +1,4 @@
+PyQt
+PyQtWebEngine
+tenacity
+fake-useragent # 随机初始化 UA
