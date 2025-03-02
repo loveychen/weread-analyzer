@@ -6,7 +6,7 @@ from typing import Dict, Any, List
 from PyQt5.QtNetwork import QNetworkCookie
 import requests
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineProfile
 from PyQt5.QtCore import QUrl
 import sys
 import time
@@ -48,12 +48,15 @@ class WeReadHelper:
             self.cookies.clear()  # 清空 internal cookie 字典
             profile.clearHttpCache()  # 清除 HTTP 缓存
             profile.clearAllVisitedLinks()  # 清除访问历史记录
+            profile.cookieStore().deleteAllCookies()
+            profile.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)  # 禁用持久化 cookies
             print("已强制清空 cookies 和缓存")
 
         # 初始化 cookies_loaded 为 False
         self.cookies_loaded = False
         
         # 加载目标页面
+        print("进入微信读书页面 。。。")
         view.load(QUrl("https://weread.qq.com/"))
         view.show()
 
@@ -68,6 +71,7 @@ class WeReadHelper:
 
         # 绑定 cookieAdded 信号到处理函数
         cookie_store.cookieAdded.connect(on_cookie_added)
+        print("Cookie 捕获已开启")
 
         def on_load_finished(ok: bool) -> None:
             """当页面加载完成后，标记可以获取 cookies"""
@@ -301,7 +305,7 @@ def export_weread_library(
 
             if book_info and "chapter_infos" not in book_info:
                 book_info["chapter_infos"] = helper.get_chapter_infos(book_id)
-                print(book_info["chapter_infos"])
+                # print(book_info["chapter_infos"])
                 time.sleep(0.5)
 
             # 这个字段没有任何意义，删除掉
