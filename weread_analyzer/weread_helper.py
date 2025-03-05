@@ -275,8 +275,12 @@ def export_weread_library(
         # 已经下载过的带详细信息的书籍
         detailed_books = pd.read_json(detailed_books)
         for _, book in detailed_books.iterrows():
-            detailed_book_map[book["bookId"]] = book["info"]
-        print(f"已有 {len(detailed_books)} 本书籍已同步详情数据！！！")
+            detailed_book_map[str(book["bookId"])] = book["info"]
+        print(f"已有 {len(detailed_book_map)} 本书籍已同步详情数据！！！")
+        
+        book_ids = list(detailed_book_map.keys())
+        print(book_ids[:5], type(book_ids[0]))
+        
     except FileNotFoundError:
         print("未找到已下载的书籍信息文件，将重新下载书籍信息")
 
@@ -286,13 +290,19 @@ def export_weread_library(
             book_id = book["bookId"]
             book_title = book["title"]
 
+            # print(book_id, book_title, type(book_id), book_id in detailed_book_map)
+ 
             # 获取书籍基本信息, secret = 1 表示是自己上传的私有书籍
             if (secret := book.get("secret", 0)) == 1:
                 book_info = {}
-            elif book_info := detailed_book_map.get(book_id, {}):
-                # print(f"books {book_id} - {book_title} with detailed info")
-                book_info = book_info
+                
+            # 这部分书籍，已经下载过书籍详情了，无须再次下载
+            elif (book_info := detailed_book_map.get(book_id, {})):
+                book_info = detailed_book_map[book_id]
+            
+            # 这部分书籍需要重新下载书籍详情
             else:
+                print(f"获取书籍 {book_id} - {book_title} 信息")
                 book_info = helper.get_book_info(book_id)
                 time.sleep(0.5)
 
@@ -300,11 +310,13 @@ def export_weread_library(
                 print(f"获取书籍 {book_id} - {book_title} 信息失败")
 
             if book_info and "bookmarks" not in book_info:
+                print(f"获取书籍 {book_id} - {book_title} 热门标注信息")
                 book_info["bookmarks"] = helper.get_best_bookmarks(book_id)
                 # print(book_info)
                 time.sleep(0.5)
 
             if book_info and "chapter_infos" not in book_info:
+                print(f"获取书籍 {book_id} - {book_title} 章节信息")
                 book_info["chapter_infos"] = helper.get_chapter_infos(book_id)
                 # print(book_info["chapter_infos"])
                 time.sleep(0.5)
